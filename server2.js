@@ -1,4 +1,3 @@
-// server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -52,6 +51,7 @@ const allowedOrigins = [
 
   "https://ngo-v3-omars-projects-52eaefc2.vercel.app",
   "http://localhost:5173",
+  "http://localhost:3000",
   "https://ngo-backend-p0rc.onrender.com",
   "https://test.sospalestine.fr",
 ];
@@ -67,17 +67,12 @@ app.use(
     },
   })
 );
-app.use(express.json({ type: "application/json" }));
-app.use((req, res, next) => {
-  let data = "";
-  req.on("data", (chunk) => {
-    data += chunk;
-  });
-  req.on("end", () => {
-    req.rawBody = data;
-    next();
-  });
-});
+
+// 👇 Only parse raw body for PayPal webhook
+app.use("/paypal-webhook", express.raw({ type: "application/json" }));
+
+// 👇 Use JSON body parser for all other routes
+app.use(express.json());
 
 // Metal prices logic
 let goldPricePerGram = null;
@@ -121,6 +116,7 @@ const fetchPrices = async () => {
 fetchPrices();
 cron.schedule("0 */12 * * *", fetchPrices);
 
+// 📩 Webhook endpoint for PayPal
 app.post("/paypal-webhook", async (req, res) => {
   try {
     const headers = req.headers;
@@ -130,7 +126,7 @@ app.post("/paypal-webhook", async (req, res) => {
     const authAlgo = headers["paypal-auth-algo"];
     const transmissionSig = headers["paypal-transmission-sig"];
     const webhookId = process.env.PAYPAL_WEBHOOK_ID;
-    const webhookEventBody = req.rawBody;
+    const webhookEventBody = req.body; // now raw body is available here
 
     // Verify signature
     const verifyResponse = await fetch(
@@ -150,7 +146,7 @@ app.post("/paypal-webhook", async (req, res) => {
           transmission_sig: transmissionSig,
           transmission_time: transmissionTime,
           webhook_id: webhookId,
-          webhook_event: JSON.parse(webhookEventBody),
+          webhook_event: JSON.parse(webhookEventBody.toString("utf8")),
         }),
       }
     );
@@ -158,7 +154,7 @@ app.post("/paypal-webhook", async (req, res) => {
     const verification = await verifyResponse.json();
 
     if (verification.verification_status === "SUCCESS") {
-      const event = JSON.parse(webhookEventBody);
+      const event = JSON.parse(webhookEventBody.toString("utf8"));
       if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
         console.log("✅ Payment completed:", {
           transactionId: event.resource.id,
@@ -178,7 +174,7 @@ app.post("/paypal-webhook", async (req, res) => {
   }
 });
 
-// Metal Prices Endpoint
+// 💰 Metal Prices Endpoint
 app.get("/api/metal-prices", async (req, res) => {
   if (goldPricePerGram === null || silverPricePerGram === null) {
     await fetchPrices();
@@ -191,85 +187,173 @@ app.get("/api/metal-prices", async (req, res) => {
   }
 });
 
-// PayPal Config Endpoint
+// 🔐 PayPal Config Endpoint
 app.get("/config/paypal", (req, res) => {
   res.json({ clientId: process.env.PAYPAL_CLIENT_ID });
 });
 
-// Health check endpoint
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "OK" });
-});
+// ✅ Nodemailer
+export async function sendEmail({ to, subject, html }) {
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT),
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: process.env.SMTP_PORT === "465", // Use true for SSL (465) and false for TLS (587)
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
-
-// Modify your sendEmail function to use SMTP
-const sendEmail = async ({ to, subject, html }) => {
-  const mailOptions = {
-    from: process.env.SMTP_USER,
+  await transporter.sendMail({
+    from: `"SOSP Palestine" <${process.env.SMTP_USER}>`,
     to,
     subject,
     html,
-  };
+  });
+}
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Message sent:", info.messageId);
-  } catch (error) {
-    console.error("Error sending email:", error);
-    throw error;
-  }
-};
-
-// Example route using the updated sendEmail
+// 📧 Subscription route
 app.post("/subscribe", async (req, res) => {
   const { email } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ error: "Email is required." });
-  }
+  if (!email) return res.status(400).json({ error: "Email required." });
 
   try {
-    await sendEmail({
-      to: email,
-      subject: "You're subscribed!",
-      html: `<p>Thank you for subscribing to our newsletter.</p>`,
-    });
-
-    res.json({ success: true, message: "Subscription confirmed." });
+    console.log("Sending emails...");
+    await Promise.all([
+      sendEmail({
+        to: email,
+        subject: "You’re now subscribed!",
+        html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #eaeaea; border-radius: 10px; background-color: #f9f9f9;">
+          <h2 style="color: #2e7d32;"> Welcome to SOS Palestine!</h2>
+          <p style="font-size: 16px; color: #333;">
+            Thank you for subscribing to our updates. You’re now part of a global community standing in solidarity for justice and humanity.
+          </p>
+          <p style="font-size: 15px; color: #555;">
+            We’ll keep you informed about our latest campaigns, projects, and how your support is making a difference on the ground.
+          </p>
+          <hr style="margin: 20px 0;" />
+          <p style="font-size: 14px; color: #888;">
+            If you have any questions, feel free to reply to this email or visit our website at 
+            <a href="https://sospalestine.fr" style="color: #2e7d32;">sospalestine.fr</a>.
+          </p>
+          <p style="font-size: 14px; color: #888;">
+            – The SOS Palestine Team
+          </p>
+        </div>
+      `,
+      }),
+      sendEmail({
+        to: "omaralbarakeh2@gmail.com",
+        subject: "New subscriber",
+        html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #fffbe6;">
+          <h3 style="color: #d84315;"> New Newsletter Subscription</h3>
+          <p style="font-size: 16px; color: #333;">
+            A new user has just subscribed to the mailing list.
+          </p>
+          <table style="margin-top: 10px; font-size: 15px; color: #555;">
+            <tr>
+              <td><strong>Email:</strong></td>
+              <td>${email}</td>
+            </tr>
+            <tr>
+              <td><strong>Subscribed At:</strong></td>
+              <td>${new Date().toLocaleString("fr-FR", {
+                timeZone: "Europe/Paris",
+              })}</td>
+            </tr>
+          </table>
+          <hr style="margin: 20px 0;" />
+          <p style="font-size: 13px; color: #888;">
+            This is an automated notification from <strong>sospalestine.fr</strong>
+          </p>
+        </div>
+      `,
+      }),
+    ]);
+    console.log("Emails sent!");
+    res.json({ success: true, message: "Subscription successful." });
   } catch (err) {
-    res.status(500).json({ error: "Failed to send confirmation." });
+    console.error("Subscription error:", err.message);
+    res.status(500).json({ error: "Something went wrong." });
   }
 });
 
-app.post("/contact", async (req, res) => {
-  const { name, email, message } = req.body;
-
-  if (!name || !email || !message) {
-    return res.status(400).json({ error: "All fields are required." });
+// 📨 Test email
+app.get("/test-email", async (req, res) => {
+  try {
+    await sendEmail({
+      to: "omaralbarakeh2@gmail.com",
+      subject: "Test Email from IONOS SMTP",
+      html: "<p>This is a test email from your Node server.</p>",
+    });
+    res.send("Test email sent!");
+  } catch (err) {
+    console.error("❌ Email error:", err);
+    res.status(500).send("Failed to send test email.");
   }
+});
+
+// 💬 Contact form
+app.post("/contact", async (req, res) => {
+  const { email, message } = req.body;
+
+  // Basic validation: check for missing fields
+  if (!email || !message) {
+    return res.status(400).json({ error: "Email and message are required." });
+  }
+
+  // Email format validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: "Invalid email format." });
+  }
+
+  // HTML escaping to prevent injection
+  const escapedEmail = escape(email);
+  const escapedMessage = escape(message).replace(/\n/g, "<br/>");
 
   try {
     await sendEmail({
-      to: "admin@yourdomain.com", // your admin inbox
-      subject: `New contact message from ${name}`,
-      html: `<p><strong>Email:</strong> ${email}</p><p><strong>Message:</strong><br/>${message}</p>`,
+      to: "omaralbarakeh2@gmail.com",
+      subject: `📨 New Contact Form Submission from ${escapedEmail}`,
+      html: `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f4f4; color: #333;">
+          <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div style="background-color: #4CAF50; color: white; padding: 16px 20px; font-size: 18px;">
+               New Message Received
+            </div>
+            <div style="padding: 20px;">
+              <p style="margin: 0 0 10px;"><strong>Sender Email:</strong> 
+                <a href="mailto:${escapedEmail}" style="color: #4CAF50; text-decoration: none;">${escapedEmail}</a>
+              </p>
+    
+              <p style="margin: 20px 0 5px;"><strong>Message:</strong></p>
+              <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #4CAF50; white-space: pre-line;">
+                ${escapedMessage}
+              </div>
+    
+              <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;" />
+    
+              <p style="font-size: 13px; color: #888; text-align: center;">
+                This message was sent via your website contact form.
+              </p>
+            </div>
+          </div>
+        </div>
+      `,
+      replyTo: escapedEmail,
     });
 
     res.json({ success: true, message: "Message sent successfully." });
   } catch (err) {
+    console.error("Email send error:", err.message);
     res.status(500).json({ error: "Failed to send message." });
   }
 });
 
+// 🏠 Root route
 app.get("/", (req, res) => {
   res.send("Home route works");
 });
