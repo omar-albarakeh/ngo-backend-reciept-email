@@ -59,6 +59,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "https://ngo-backend-p0rc.onrender.com",
   "https://test.sospalestine.fr",
+  " https://ngo-backend-reciept-email.onrender.com",
 ];
 
 app.use(
