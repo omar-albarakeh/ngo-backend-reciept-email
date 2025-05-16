@@ -262,12 +262,39 @@ app.post("/generate-receipt-or-thankyou", async (req, res) => {
       : "💖 Merci pour votre don à SOS Palestine";
 
     await sendEmailWithAttachment({
-      to: "contact@sospalestine.fr",
+      to: email, // <- email from the frontend
       subject,
       html: donorHtml,
       pdfBuffer,
       filename,
     });
+    // Send to the donor
+    await sendEmailWithAttachment({
+      to: email, // from frontend
+      subject,
+      html: donorHtml,
+      pdfBuffer,
+      filename,
+    });
+
+    // Send to the team (just PDF, no donorHtml)
+    if (pdfBuffer) {
+      await sendEmailWithAttachment({
+        to: "contact@sospalestine.fr",
+        subject: `🧾 Nouveau reçu fiscal émis - ${name} ${surname}`,
+        html: `
+      <p>Un nouveau reçu fiscal a été généré pour un donateur :</p>
+      <ul>
+        <li><strong>Nom :</strong> ${name} ${surname}</li>
+        <li><strong>Montant :</strong> ${amount} €</li>
+        <li><strong>ID de reçu :</strong> ${receiptNumber || "N/A"}</li>
+      </ul>
+      <p>Le reçu est joint en pièce jointe.</p>
+    `,
+        pdfBuffer,
+        filename,
+      });
+    }
 
     res.json({
       success: true,
@@ -334,7 +361,7 @@ app.post("/paypal-webhook", async (req, res) => {
     const authAlgo = headers["paypal-auth-algo"];
     const transmissionSig = headers["paypal-transmission-sig"];
     const webhookId = process.env.PAYPAL_WEBHOOK_ID;
-    const webhookEventBody = req.body; 
+    const webhookEventBody = req.body;
 
     // Verify signature
     const verifyResponse = await fetch(
