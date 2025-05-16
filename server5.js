@@ -554,33 +554,33 @@ app.post("/contact", async (req, res) => {
   try {
     await sendEmail({
       to: "contact@sospalestine.fr",
-      subject: `📨 New Contact Form Submission from ${escapedEmail}`,
+      subject: `📨 Nouvelle soumission du formulaire de contact de ${escapedEmail}`,
       html: `
-       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f4f4; color: #333;">
-  <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-    <div style="background-color: #4CAF50; color: white; padding: 16px 20px; font-size: 18px;">
-      Nouveau message reçu
-    </div>
-    <div style="padding: 20px;">
-      <p style="margin: 0 0 10px;"><strong>Email de l’expéditeur :</strong> 
-        <a href="mailto:${escapedEmail}" style="color: #4CAF50; text-decoration: none;">${escapedEmail}</a>
-      </p>
-
-      <p style="margin: 20px 0 5px;"><strong>Message :</strong></p>
-      <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #4CAF50; white-space: pre-line;">
-        ${escapedMessage}
-      </div>
-
-      <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;" />
-
-      <p style="font-size: 13px; color: #888; text-align: center;">
-        Ce message a été envoyé via le formulaire de contact de votre site web.
-      </p>
-    </div>
-  </div>
-</div>
-
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f4f4; color: #333;">
+          <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div style="background-color: #4CAF50; color: white; padding: 16px 20px; font-size: 18px;">
+              Nouveau message reçu
+            </div>
+            <div style="padding: 20px;">
+              <p style="margin: 0 0 10px;"><strong>Email de l’expéditeur :</strong> 
+                <a href="mailto:${escapedEmail}" style="color: #4CAF50; text-decoration: none;">${escapedEmail}</a>
+              </p>
+      
+              <p style="margin: 20px 0 5px;"><strong>Message :</strong></p>
+              <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #4CAF50; white-space: pre-line;">
+                ${escapedMessage}
+              </div>
+      
+              <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;" />
+      
+              <p style="font-size: 13px; color: #888; text-align: center;">
+                Ce message a été envoyé via le formulaire de contact de votre site web.
+              </p>
+            </div>
+          </div>
+        </div>
       `,
+
       replyTo: escapedEmail,
     });
 
