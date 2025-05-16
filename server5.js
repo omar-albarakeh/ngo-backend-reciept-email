@@ -262,7 +262,7 @@ app.post("/generate-receipt-or-thankyou", async (req, res) => {
       : "💖 Merci pour votre don à SOS Palestine";
 
     await sendEmailWithAttachment({
-      to: "omaralbarakeh2@gmail.com",
+      to: "contact@sospalestine.fr",
       subject,
       html: donorHtml,
       pdfBuffer,
@@ -334,7 +334,7 @@ app.post("/paypal-webhook", async (req, res) => {
     const authAlgo = headers["paypal-auth-algo"];
     const transmissionSig = headers["paypal-transmission-sig"];
     const webhookId = process.env.PAYPAL_WEBHOOK_ID;
-    const webhookEventBody = req.body; // now raw body is available here
+    const webhookEventBody = req.body; 
 
     // Verify signature
     const verifyResponse = await fetch(
@@ -430,7 +430,7 @@ app.post("/subscribe", async (req, res) => {
     await Promise.all([
       sendEmail({
         to: email,
-        subject: "You’re now subscribed!",
+        subject: "Vous êtes maintenant abonné(e) !",
         html: `
    <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #eaeaea; border-radius: 10px; background-color: #f9f9f9;">
   <h2 style="color: #2e7d32;"> Bienvenue chez SOS Palestine !</h2>
@@ -454,7 +454,7 @@ app.post("/subscribe", async (req, res) => {
       }),
       sendEmail({
         to: "contact@sospalestine.fr",
-        subject: "New subscriber",
+        subject: "Nouveau/elle abonné(e)",
         html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #fffbe6;">
   <h3 style="color: #d84315;"> Nouvelle inscription à la newsletter</h3>
