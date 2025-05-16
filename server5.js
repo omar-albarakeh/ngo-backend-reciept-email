@@ -147,7 +147,6 @@ function escapeHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
-
 // Main route
 app.post("/generate-receipt-or-thankyou", async (req, res) => {
   try {
@@ -420,51 +419,53 @@ app.post("/subscribe", async (req, res) => {
         to: email,
         subject: "You’re now subscribed!",
         html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #eaeaea; border-radius: 10px; background-color: #f9f9f9;">
-          <h2 style="color: #2e7d32;"> Welcome to SOS Palestine!</h2>
-          <p style="font-size: 16px; color: #333;">
-            Thank you for subscribing to our updates. You’re now part of a global community standing in solidarity for justice and humanity.
-          </p>
-          <p style="font-size: 15px; color: #555;">
-            We’ll keep you informed about our latest campaigns, projects, and how your support is making a difference on the ground.
-          </p>
-          <hr style="margin: 20px 0;" />
-          <p style="font-size: 14px; color: #888;">
-            If you have any questions, feel free to reply to this email or visit our website at 
-            <a href="https://sospalestine.fr" style="color: #2e7d32;">sospalestine.fr</a>.
-          </p>
-          <p style="font-size: 14px; color: #888;">
-            – The SOS Palestine Team
-          </p>
-        </div>
+   <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #eaeaea; border-radius: 10px; background-color: #f9f9f9;">
+  <h2 style="color: #2e7d32;"> Bienvenue chez SOS Palestine !</h2>
+  <p style="font-size: 16px; color: #333;">
+    Merci de vous être abonné à nos actualités. Vous faites désormais partie d'une communauté mondiale unie pour la justice et l'humanité.
+  </p>
+  <p style="font-size: 15px; color: #555;">
+    Nous vous tiendrons informé(e) de nos dernières campagnes, projets et de l'impact concret de votre soutien sur le terrain.
+  </p>
+  <hr style="margin: 20px 0;" />
+  <p style="font-size: 14px; color: #888;">
+    Si vous avez des questions, n'hésitez pas à répondre à cet e-mail ou à visiter notre site web :
+    <a href="https://sospalestine.fr" style="color: #2e7d32;">sospalestine.fr</a>.
+  </p>
+  <p style="font-size: 14px; color: #888;">
+    – L'équipe SOS Palestine
+  </p>
+</div>
+
       `,
       }),
       sendEmail({
-        to: "omaralbarakeh2@gmail.com",
+        to: "contact@sospalestine.fr",
         subject: "New subscriber",
         html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #fffbe6;">
-          <h3 style="color: #d84315;"> New Newsletter Subscription</h3>
-          <p style="font-size: 16px; color: #333;">
-            A new user has just subscribed to the mailing list.
-          </p>
-          <table style="margin-top: 10px; font-size: 15px; color: #555;">
-            <tr>
-              <td><strong>Email:</strong></td>
-              <td>${email}</td>
-            </tr>
-            <tr>
-              <td><strong>Subscribed At:</strong></td>
-              <td>${new Date().toLocaleString("fr-FR", {
-                timeZone: "Europe/Paris",
-              })}</td>
-            </tr>
-          </table>
-          <hr style="margin: 20px 0;" />
-          <p style="font-size: 13px; color: #888;">
-            This is an automated notification from <strong>sospalestine.fr</strong>
-          </p>
-        </div>
+  <h3 style="color: #d84315;"> Nouvelle inscription à la newsletter</h3>
+  <p style="font-size: 16px; color: #333;">
+    Un nouvel utilisateur vient de s'abonner à la liste de diffusion.
+  </p>
+  <table style="margin-top: 10px; font-size: 15px; color: #555;">
+    <tr>
+      <td><strong>Email :</strong></td>
+      <td>${email}</td>
+    </tr>
+    <tr>
+      <td><strong>Date d'abonnement :</strong></td>
+      <td>${new Date().toLocaleString("fr-FR", {
+        timeZone: "Europe/Paris",
+      })}</td>
+    </tr>
+  </table>
+  <hr style="margin: 20px 0;" />
+  <p style="font-size: 13px; color: #888;">
+    Ceci est une notification automatique de <strong>sospalestine.fr</strong>
+  </p>
+</div>
+
       `,
       }),
     ]);
@@ -480,7 +481,7 @@ app.post("/subscribe", async (req, res) => {
 app.get("/test-email", async (req, res) => {
   try {
     await sendEmail({
-      to: "omaralbarakeh2@gmail.com",
+      to: "contact@sospalestine.fr",
       subject: "Test Email from IONOS SMTP",
       html: "<p>This is a test email from your Node server.</p>",
     });
@@ -512,32 +513,33 @@ app.post("/contact", async (req, res) => {
 
   try {
     await sendEmail({
-      to: "omaralbarakeh2@gmail.com",
+      to: "contact@sospalestine.fr",
       subject: `📨 New Contact Form Submission from ${escapedEmail}`,
       html: `
-        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f4f4; color: #333;">
-          <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            <div style="background-color: #4CAF50; color: white; padding: 16px 20px; font-size: 18px;">
-               New Message Received
-            </div>
-            <div style="padding: 20px;">
-              <p style="margin: 0 0 10px;"><strong>Sender Email:</strong> 
-                <a href="mailto:${escapedEmail}" style="color: #4CAF50; text-decoration: none;">${escapedEmail}</a>
-              </p>
-    
-              <p style="margin: 20px 0 5px;"><strong>Message:</strong></p>
-              <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #4CAF50; white-space: pre-line;">
-                ${escapedMessage}
-              </div>
-    
-              <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;" />
-    
-              <p style="font-size: 13px; color: #888; text-align: center;">
-                This message was sent via your website contact form.
-              </p>
-            </div>
-          </div>
-        </div>
+       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f4f4; color: #333;">
+  <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+    <div style="background-color: #4CAF50; color: white; padding: 16px 20px; font-size: 18px;">
+      Nouveau message reçu
+    </div>
+    <div style="padding: 20px;">
+      <p style="margin: 0 0 10px;"><strong>Email de l’expéditeur :</strong> 
+        <a href="mailto:${escapedEmail}" style="color: #4CAF50; text-decoration: none;">${escapedEmail}</a>
+      </p>
+
+      <p style="margin: 20px 0 5px;"><strong>Message :</strong></p>
+      <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #4CAF50; white-space: pre-line;">
+        ${escapedMessage}
+      </div>
+
+      <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;" />
+
+      <p style="font-size: 13px; color: #888; text-align: center;">
+        Ce message a été envoyé via le formulaire de contact de votre site web.
+      </p>
+    </div>
+  </div>
+</div>
+
       `,
       replyTo: escapedEmail,
     });
