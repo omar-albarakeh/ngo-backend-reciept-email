@@ -138,6 +138,16 @@ async function getNextReceiptNumber() {
   return counter;
 }
 
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+
 // Main route
 app.post("/generate-receipt-or-thankyou", async (req, res) => {
   try {
@@ -481,6 +491,7 @@ app.get("/test-email", async (req, res) => {
   }
 });
 
+// 💬 Contact form
 app.post("/contact", async (req, res) => {
   const { email, message } = req.body;
 
@@ -495,39 +506,38 @@ app.post("/contact", async (req, res) => {
     return res.status(400).json({ error: "Invalid email format." });
   }
 
-  // HTML escaping to prevent injection using `he` library
-  const escapedEmail = he.encode(email);
-  const escapedMessage = he.encode(message); // Encode the whole message
+  // HTML escaping to prevent injection
+  const escapedEmail = escapeHtml(email);
+  const escapedMessage = escapeHtml(message).replace(/\n/g, "<br/>");
 
   try {
     await sendEmail({
       to: "omaralbarakeh2@gmail.com",
       subject: `📨 New Contact Form Submission from ${escapedEmail}`,
       html: `
-      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; padding: 40px 20px; color: #333;">
-        <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,0.08);">
-          <div style="background-color: #4CAF50; color: #ffffff; padding: 20px; font-size: 20px; font-weight: 600; text-align: center;">
-            📩 New Message Received
-          </div>
-          <div style="padding: 30px 25px;">
-            <p style="margin: 0 0 15px; font-size: 16px; line-height: 1.5;">
-              <strong>Sender Email:</strong><br>
-              <a href="mailto:${escapedEmail}" style="color: #4CAF50; text-decoration: none; font-weight: 500;">${escapedEmail}</a>
-            </p>
-
-            <p style="margin: 30px 0 10px; font-size: 16px; font-weight: 600;">Message:</p>
-            <div style="background-color: #f9f9f9; padding: 20px; border-left: 4px solid #4CAF50; border-radius: 4px; font-size: 15px; line-height: 1.6; white-space: pre-line;">
-              ${escapedMessage}
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f4f4; color: #333;">
+          <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div style="background-color: #4CAF50; color: white; padding: 16px 20px; font-size: 18px;">
+               New Message Received
             </div>
-
-            <hr style="margin: 40px 0; border: none; border-top: 1px solid #eee;" />
-
-            <p style="font-size: 13px; color: #999; text-align: center;">
-              This message was sent from your website contact form.
-            </p>
+            <div style="padding: 20px;">
+              <p style="margin: 0 0 10px;"><strong>Sender Email:</strong> 
+                <a href="mailto:${escapedEmail}" style="color: #4CAF50; text-decoration: none;">${escapedEmail}</a>
+              </p>
+    
+              <p style="margin: 20px 0 5px;"><strong>Message:</strong></p>
+              <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #4CAF50; white-space: pre-line;">
+                ${escapedMessage}
+              </div>
+    
+              <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;" />
+    
+              <p style="font-size: 13px; color: #888; text-align: center;">
+                This message was sent via your website contact form.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
       `,
       replyTo: escapedEmail,
     });
