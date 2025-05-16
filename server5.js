@@ -59,7 +59,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "https://ngo-backend-p0rc.onrender.com",
   "https://test.sospalestine.fr",
-  "https://ngo-frontend-reciept-email.vercel.app",
+  "https://ngo-frontend-reciept-email-31ym.vercel.app",
 ];
 
 app.use(
@@ -224,32 +224,45 @@ app.post("/generate-receipt-or-thankyou", async (req, res) => {
         ) + ".pdf";
     }
 
-    const donorHtml = hasFullReceiptData
-      ? `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; background-color: #f9f9f9; border-radius: 8px;">
-        <h2 style="color: #2e7d32;">Votre reçu fiscal est prêt</h2>
-        <p>Salam alaykoum <strong>${name} ${surname}</strong>,</p>
-        <p>Merci pour votre don de <strong>${amount} €</strong>.</p>
-        <p>Le reçu est en pièce jointe.</p>
-        <p>— L'équipe de l'Association SOS Humanistes</p>
-      </div>
-    `
-      : `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; background-color: #f0f4c3; border-radius: 8px;">
-        <h2 style="color: #2e7d32;">Merci pour votre don !</h2>
-        <p>Salam alaykoum <strong>${name} ${surname}</strong>,</p>
-        <p>Nous vous remercions pour votre don de <strong>${amount} €</strong>.</p>
-        <p><strong>بارك الله فيك</strong></p>
-        <p>— L'équipe de l'Association SOS Humanistes</p>
-      </div>
-    `;
+    const donorHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto; padding: 30px; background-color: #fffbe7; border-radius: 8px; line-height: 1.6; color: #333;">
+      <p>Salam alaykoum <strong>${name} ${surname}</strong>,</p>
+      
+      <p>Au nom de toute l'équipe de l'Association <strong>SOS Humanistes</strong>, je tiens à vous exprimer notre profonde gratitude pour votre généreux don.</p>
+  
+      <p><strong>Montant du don :</strong> ${amount} €<br/>
+      ${
+        hasFullReceiptData && receiptNumber
+          ? `<strong>ID de transaction :</strong> ${receiptNumber}<br/>`
+          : ""
+      }
+      </p>
+  
+      <p>Grâce à votre don, nous pourrons fournir une aide médicale, de la nourriture, de l'eau potable et d'autres fournitures essentielles aux personnes touchées par le conflit en Palestine.</p>
+  
+      <p>Encore une fois, nous vous remercions de tout cœur pour votre soutien.</p>
+  
+      <p><strong>بارك الله فيك</strong></p>
+  
+      <p>— L'équipe de l'Association SOS Humanistes</p>
+  
+      <hr style="margin: 20px 0;" />
+  
+      <p style="font-size: 14px;">
+        📞 Tel: +33/783255325<br/>
+        ☎️ Fixe: 0951082454<br/>
+        ✉️ Email: <a href="mailto:contact@sospalestine.fr">contact@sospalestine.fr</a><br/>
+        🌐 Site: <a href="https://sospalestine.fr" target="_blank">https://sospalestine.fr</a>
+      </p>
+    </div>
+  `;
 
     const subject = hasFullReceiptData
       ? "🎁 Votre reçu fiscal SOS Palestine"
       : "💖 Merci pour votre don à SOS Palestine";
 
     await sendEmailWithAttachment({
-      to: email,
+      to: "omaralbarakeh2@gmail.com",
       subject,
       html: donorHtml,
       pdfBuffer,
