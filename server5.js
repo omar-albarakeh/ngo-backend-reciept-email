@@ -61,7 +61,7 @@ const allowedOrigins = [
   "https://test.sospalestine.fr",
   "https://ngo-frontend-reciept-email-31ym.vercel.app",
 ];
-
+//tes test
 app.use(
   cors({
     origin: function (origin, callback) {
