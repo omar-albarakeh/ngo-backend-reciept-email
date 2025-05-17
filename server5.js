@@ -258,8 +258,8 @@ app.post("/generate-receipt-or-thankyou", async (req, res) => {
   `;
 
     const subject = hasFullReceiptData
-      ? "🎁 Votre reçu fiscal SOS Palestine"
-      : "💖 Merci pour votre don à SOS Palestine";
+      ? " Votre reçu fiscal SOS Palestine"
+      : " Merci pour votre don à SOS Palestine";
 
     await sendEmailWithAttachment({
       to: email, // <- email from the frontend
@@ -400,7 +400,7 @@ app.post("/paypal-webhook", async (req, res) => {
       }
       res.status(200).send("Webhook verified.");
     } else {
-      console.warn("❌ Webhook verification failed.");
+      console.warn(" Webhook verification failed.");
       res.status(400).send("Invalid signature.");
     }
   } catch (err) {
@@ -554,7 +554,7 @@ app.post("/contact", async (req, res) => {
   try {
     await sendEmail({
       to: "contact@sospalestine.fr",
-      subject: `📨 Nouvelle soumission du formulaire de contact de ${escapedEmail}`,
+      subject: ` Nouvelle soumission du formulaire de contact de ${escapedEmail}`,
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f4f4; color: #333;">
           <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
