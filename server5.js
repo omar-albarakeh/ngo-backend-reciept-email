@@ -56,6 +56,7 @@ const allowedOrigins = [
 
   "https://ngo-v3-omars-projects-52eaefc2.vercel.app",
   "http://localhost:5173",
+  "http://217.154.201.27",
   "http://localhost:3000",
   "https://ngo-backend-p0rc.onrender.com",
   "https://test.sospalestine.fr",
